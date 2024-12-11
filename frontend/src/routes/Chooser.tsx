@@ -2,7 +2,8 @@ import { useAtom, useSetAtom } from "jotai";
 import { selectedDigitAtom, showChooserAtom, showEditorAtom } from "../atoms";
 import { labels } from "../shared/consts";
 import { XIcon } from "lucide-react";
-import { Button } from "../components/Button";
+import { Link } from "react-router";
+import { ButtonLink } from "../components/Button";
 
 export function Chooser() {
   const setShowChooser = useSetAtom(showChooserAtom);
@@ -27,11 +28,11 @@ export function Chooser() {
 
   return (
     <div className="absolute left-0 top-0 w-full h-full flex flex-col bg-neutral-900 overflow-hidden">
-      <div className="flex justify-between py-2 px-2 bg-neutral-800">
+      <div className="flex justify-between py-2 items-center px-2 bg-neutral-800">
         <div className="text-center px-4 py-2  ">Choose a digit</div>
-        <Button onClick={() => setShowChooser(false)}>
+        <ButtonLink to="/">
           <XIcon size={16} />
-        </Button>
+        </ButtonLink>
       </div>
       <div className="grow flex overflow-auto py-5">
         <div className="m-auto flex flex-col">
@@ -41,14 +42,10 @@ export function Chooser() {
               const height =
                 labels[i] === "AM" || labels[i] === "PM" ? 400 : 800;
               return (
-                <button
+                <Link
                   key={i}
                   className="flex flex-col items-center bg-neutral-700 hover:bg-neutral-600 p-2 rounded-xl gap-1 "
-                  onClick={() => {
-                    setShowChooser(false);
-                    setSelectedDigit(labels[i]);
-                    setShowEditor(true);
-                  }}
+                  to={`/creator/${labels[i]}`}
                 >
                   <div
                     className=""
@@ -61,7 +58,7 @@ export function Chooser() {
                     }}
                   />
                   <div className="text-white ">{labels[i]}</div>
-                </button>
+                </Link>
               );
             })}
           </div>
