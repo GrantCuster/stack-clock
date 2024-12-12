@@ -24,11 +24,15 @@ export const cameraModeOnAtom = atom(false);
 
 export const editModeOnAtom = atom(false);
 
-export const creatorCameraAtom = atom({ x: 0, y: 0, z: 1 });
-export const creatorCanvasContainerAtom = atom<HTMLDivElement | null>(null);
+export const cameraAtom = atom({ x: 0, y: 0, z: 1 });
+export const canvasContainerAtom = atom<HTMLDivElement | null>(null);
 export const creatorCameraVideoElementAtom = atom<HTMLVideoElement | null>(
   null,
 );
+export const mediaSizeAtom = atom<{ width: number; height: number }>({
+  width: 0,
+  height: 0,
+});
 
 export const customDigitsAtom = atom<Record<LabelType, string | null>>({
   "0": null,

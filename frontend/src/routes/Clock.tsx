@@ -33,15 +33,12 @@ export function Clock() {
     <div className="grow flex flex-col">
       <div className="grow px-8 flex">
         <div className="aspect-[121/40] flex items-end m-auto w-full">
-          <div
-            className="h-full w-full"
-            style={{
-              backgroundImage:
-                hours[0] === "0" ? "none" : `url("/${hours[0]}.jpg")`,
-              backgroundSize: "100% 100%",
-              backgroundRepeat: "no-repeat",
-            }}
-          ></div>
+          {hours[0] !== "0" ? (
+            <DigitImage digit={hours[0]} />
+          ) : (
+            <div className="h-full w-full"></div>
+          )}
+
           <DigitImage digit={hours[1]} />
           <Link
             to={`/creator/:`}
