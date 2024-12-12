@@ -3,6 +3,7 @@ import { customDigitsAtom, showChooserAtom } from "../atoms";
 import { useAtom, useSetAtom } from "jotai";
 import { ImageIcon } from "lucide-react";
 import { Button, ButtonLink } from "../components/Button";
+import { Link } from "react-router";
 
 export function Clock() {
   const intervalRef = useRef<number | null>(null);
@@ -42,24 +43,26 @@ export function Clock() {
             }}
           ></div>
           <DigitImage digit={hours[1]} />
-          <div
-            className="h-full w-1/2"
+          <Link
+            to={`/creator/:`}
+            className="h-full w-1/2 border-2 border-transparent hover:border-blue-500"
             style={{
               backgroundImage: 'url("/colon.jpg")',
               backgroundSize: "100% 100%",
               backgroundRepeat: "no-repeat",
             }}
-          ></div>
+          ></Link>
           <DigitImage digit={minutes[0]} />
           <DigitImage digit={minutes[1]} />
-          <div
-            className="h-1/2 w-full"
+          <Link
+            to={`/creator/${amppm.toLowerCase()}`}
+            className="h-1/2 w-full border-2 border-transparent hover:border-blue-500"
             style={{
               backgroundImage: `url("/${amppm.toLowerCase()}.jpg")`,
               backgroundSize: "100% 100%",
               backgroundRepeat: "no-repeat",
             }}
-          ></div>
+          ></Link>
         </div>
       </div>
       <div className="flex justify-center pb-4">
@@ -82,13 +85,14 @@ function DigitImage({ digit }: { digit: string }) {
     ) || digit + ".jpg";
 
   return (
-    <div
-      className="h-full w-full"
+    <Link
+      to={`/creator/${digit}`}
+      className="h-full w-full border-2 border-transparent hover:border-blue-500"
       style={{
         backgroundImage: `url("/${imageString}")`,
         backgroundSize: "100% 100%",
         backgroundRepeat: "no-repeat",
       }}
-    ></div>
+    ></Link>
   );
 }

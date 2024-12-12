@@ -6,12 +6,12 @@ export function Button({
   onClick = () => {},
 }: {
   children?: React.ReactNode;
-  transparent: boolean;
+  transparent?: boolean;
   onClick?: () => void;
 }) {
   return (
     <button
-      className="bg-neutral-700 flex gap-2 items-center hover:bg-neutral-600 rounded-full px-4 py-2"
+      className={`${transparent ? "" : "bg-neutral-700"} flex gap-2 items-center hover:bg-neutral-600 rounded-full px-4 py-3`}
       onClick={onClick}
     >
       {children}

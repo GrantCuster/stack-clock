@@ -24,14 +24,11 @@ export const cameraModeOnAtom = atom(false);
 
 export const editModeOnAtom = atom(false);
 
-export const cameraCameraAtom = atom({ x: 0, y: 0, z: 1 });
-export const cameraCanvasContainerAtom = atom<HTMLDivElement | null>(null);
-export const cameraVideoElementAtom = atom<HTMLVideoElement | null>(null);
-
-export const activeCanvasAtom = atom<HTMLCanvasElement | null>(null);
-
-export const submittedAtom = atom(false);
-export const submittedCanvasAtom = atom<HTMLCanvasElement | null>(null);
+export const creatorCameraAtom = atom({ x: 0, y: 0, z: 1 });
+export const creatorCanvasContainerAtom = atom<HTMLDivElement | null>(null);
+export const creatorCameraVideoElementAtom = atom<HTMLVideoElement | null>(
+  null,
+);
 
 export const customDigitsAtom = atom<Record<LabelType, string | null>>({
   "0": null,
@@ -48,3 +45,11 @@ export const customDigitsAtom = atom<Record<LabelType, string | null>>({
   AM: null,
   PM: null,
 });
+
+export const growContainerSizeAtom = atom({ width: 0, height: 0 });
+
+// ---
+
+export const activeCanvasAtom = atom<HTMLCanvasElement | null>(null);
+export const submittedAtom = atom(false);
+export const submittedCanvasAtom = atom<HTMLCanvasElement | null>(null);

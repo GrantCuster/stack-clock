@@ -4,7 +4,7 @@ import "./index.css";
 import { Clock } from "./routes/Clock.tsx";
 import { BrowserRouter, Routes, Route } from "react-router";
 import { Chooser } from "./routes/Chooser.tsx";
-import { Creator } from "./routes/Creator.tsx";
+import { Creator, CreatorCamera, MethodChoice } from "./routes/Creator.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -13,7 +13,10 @@ createRoot(document.getElementById("root")!).render(
         <Routes>
           <Route path="/" element={<Clock />} />
           <Route path="/chooser" element={<Chooser />} />
-          <Route path="/creator/:digit" element={<Creator />} />
+          <Route path="/creator/:digit" element={<Creator />}>
+            <Route index element={<MethodChoice />} />
+            <Route path="camera" element={<CreatorCamera />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </div>
