@@ -216,7 +216,7 @@ export function CameraStream() {
 
   return stream ? (
     <video
-      className="relative opacity-0"
+      className="relative"
       ref={(el) => {
         videoRef.current = el;
         if (el && !cameraVideoElement) {
