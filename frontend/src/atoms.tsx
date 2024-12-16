@@ -17,13 +17,15 @@ export type LabelType =
 
 export const showChooserAtom = atom(false);
 export const showEditorAtom = atom(false);
-export const selectedDigitAtom = atom<LabelType>("0");
 export const cameraStreamAtom = atom<MediaStream | null>(null);
+export const ScreenshareStreamAtom = atom<MediaStream | null>(null);
 
 export const cameraModeOnAtom = atom(false);
+export const cameraFlippedAtom = atom(true);
 
 export const editModeOnAtom = atom(false);
 
+export const editorCanvasAtom = atom<HTMLCanvasElement | null>(null);
 export const cameraAtom = atom({ x: 0, y: 0, z: 1 });
 export const canvasContainerAtom = atom<HTMLDivElement | null>(null);
 export const creatorCameraVideoElementAtom = atom<HTMLVideoElement | null>(
@@ -37,12 +39,12 @@ export const mediaSizeAtom = atom<{ width: number; height: number }>({
 export const customDigitsAtom = atom<Record<LabelType, string | null>>({
   "0": null,
   "1": null,
-  "2": null,
+  "2": null, 
   "3": null,
   "4": null,
   "5": null,
   "6": null,
-  "7": null,
+  "7": null, 
   "8": null,
   "9": null,
   ":": null,

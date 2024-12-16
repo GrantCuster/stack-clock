@@ -2,27 +2,20 @@ import { useParams, useNavigate, Outlet } from "react-router";
 import { Select } from "../components/Select";
 import { labels } from "../shared/consts";
 import { Button, ButtonLink } from "../components/Button";
-import {
-  CameraIcon,
-  LayoutGridIcon,
-  MonitorIcon,
-  UploadIcon,
-  XIcon,
-} from "lucide-react";
+import { UploadIcon, XIcon } from "lucide-react";
 import { getTargetDimensions } from "../shared/utils";
 import useResizeObserver from "use-resize-observer";
 import {
   cameraAtom,
-  cameraStreamAtom,
   canvasContainerAtom,
-  creatorCameraVideoElementAtom,
+  customDigitsAtom,
+  editorCanvasAtom,
   growContainerSizeAtom,
-  mediaSizeAtom,
-  selectedDigitAtom,
 } from "../atoms";
 import { useAtom, useSetAtom } from "jotai";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { panCamera, zoomCamera } from "../shared/camera";
+import { TargetVisualizer } from "./Creator/TargetVisualizer";
 
 export function Creator() {
   const { digit } = useParams();
@@ -55,48 +48,12 @@ export function Creator() {
   );
 }
 
-export function MethodChoice() {
-  const [digit] = useAtom(selectedDigitAtom);
-  const [, setGrowContainer] = useAtom(growContainerSizeAtom);
-  const { ref: growRef } = useResizeObserver({
-    onResize: ({ width, height }) => {
-      if (width && height) {
-        setGrowContainer({ width, height });
-      }
-    },
-  });
-
-  return (
-    <>
-      <div ref={growRef} className="grow bg-black relative overflow-hidden">
-        <TargetVisualizer />
-        <div className="absolute left-0 top-0 w-full h-full flex flex-col gap-2 items-center justify-center">
-          <div className="mb-1">Method</div>
-          <ButtonLink to={`/creator/${digit}/camera`}>
-            <CameraIcon size={16} />
-            Camera
-          </ButtonLink>
-          <Button>
-            <UploadIcon size={16} />
-            Upload
-          </Button>
-          <Button>
-            <MonitorIcon size={16} />
-            Screenshare
-          </Button>
-        </div>
-      </div>
-      <div className="flex h-16 gap-2 items-center py-2 bg-neutral-800 px-2 justify-between"></div>
-    </>
-  );
-}
-
-export function CreatorCamera() {
-  const [digit] = useAtom(selectedDigitAtom);
-  const [stream] = useAtom(cameraStreamAtom);
-  const [camera, setCamera] = useAtom(cameraAtom);
-  const setStream = useSetAtom(cameraStreamAtom);
+export function CreatorEditor() {
   const [canvasContainer, setCanvasContainer] = useAtom(canvasContainerAtom);
+  const [camera, setCamera] = useAtom(cameraAtom);
+  const [editorCanvas] = useAtom(editorCanvasAtom);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const { digit } = useParams();
   const [, setGrowContainer] = useAtom(growContainerSizeAtom);
   const { ref: growRef } = useResizeObserver({
     onResize: ({ width, height }) => {
@@ -105,17 +62,16 @@ export function CreatorCamera() {
       }
     },
   });
-  const [mediaSize] = useAtom(mediaSizeAtom);
-  const { targetWidth, targetHeight } = getTargetDimensions(digit!);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
-      setStream(stream);
-    });
-    return () => {
-      // TODO stop stream
-    };
-  }, []);
+    if (canvasRef.current && editorCanvas) {
+      const context = canvasRef.current.getContext("2d")!;
+      canvasRef.current.width = editorCanvas.width;
+      canvasRef.current.height = editorCanvas.height;
+      context.drawImage(editorCanvas, 0, 0);
+    }
+  }, [editorCanvas]);
 
   useEffect(() => {
     function handleWheel(event: WheelEvent) {
@@ -138,140 +94,143 @@ export function CreatorCamera() {
       }
     }
     window.addEventListener("wheel", handleWheel, { passive: false });
-    return () => window.removeEventListener("wheel", handleWheel);
+    function handleArrows(event: KeyboardEvent) {
+      if (canvasContainer) {
+        const { key } = event;
+        if (key === "ArrowUp") {
+          setCamera((camera) => panCamera(camera, 0, -16 * camera.z));
+        } else if (key === "ArrowDown") {
+          setCamera((camera) => panCamera(camera, 0, 16 * camera.z));
+        } else if (key === "ArrowLeft") {
+          setCamera((camera) => panCamera(camera, -16 * camera.z, 0));
+        } else if (key === "ArrowRight") {
+          setCamera((camera) => panCamera(camera, 16 * camera.z, 0));
+        }
+      }
+    }
+    window.addEventListener("keydown", handleArrows);
+    function handlePlusMinus(event: KeyboardEvent) {
+      if (canvasContainer) {
+        const { key } = event;
+        if (key === "+") {
+          setCamera((camera) =>
+            zoomCamera(
+              camera,
+              { x: window.innerWidth / 2, y: window.innerWidth / 2 },
+              0.1,
+              canvasContainer,
+            ),
+          );
+        } else if (key === "-" || key === "_") {
+          setCamera((camera) =>
+            zoomCamera(
+              camera,
+              { x: window.innerWidth / 2, y: window.innerWidth / 2 },
+              -0.1,
+              canvasContainer,
+            ),
+          );
+        }
+      }
+    }
+    window.addEventListener("keydown", handlePlusMinus);
+    return () => {
+      window.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("keydown", handleArrows);
+      window.removeEventListener("keydown", handlePlusMinus);
+    };
   }, [canvasContainer, setCanvasContainer]);
+
+  const setCustomDigit = useSetAtom(customDigitsAtom);
+  const { targetWidth, targetHeight } = getTargetDimensions(digit!);
+  const [growContainerSize] = useAtom(growContainerSizeAtom);
+
+  function handleSubmit() {
+    if (canvasRef.current && editorCanvas) {
+      const padding = 24;
+      const targetScale = Math.min(
+        Math.min(
+          (growContainerSize.width - padding * 2) / targetWidth,
+          (growContainerSize.height - padding * 2) / targetHeight,
+        ),
+        1,
+      );
+      const adjustedWidth = targetWidth * targetScale;
+      const adjustedHeight = targetHeight * targetScale;
+
+      const targetX =
+        (editorCanvas.width / 2) * camera.z -
+        adjustedWidth / 2 -
+        camera.x * camera.z;
+      const targetY =
+        (editorCanvas.height / 2) * camera.z -
+        adjustedHeight / 2 -
+        camera.y * camera.z;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(
+        editorCanvas,
+        targetX / camera.z,
+        targetY / camera.z,
+        targetWidth / camera.z,
+        targetHeight / camera.z,
+        0,
+        0,
+        targetWidth,
+        targetHeight,
+      );
+      console.log(digit);
+      console.log(canvas.toDataURL("image/jpeg"));
+      setCustomDigit((prev) => {
+        return {
+          ...prev,
+          [digit!]: canvas.toDataURL("image/jpeg"),
+        };
+      });
+      navigate("/");
+    }
+  }
 
   return (
     <>
       <div ref={growRef} className="grow bg-black relative overflow-hidden">
-        <div
-          ref={(div) => {
-            if (div) {
-              setCanvasContainer(div);
-            }
-          }}
-          style={{
-            position: "absolute",
-            left: "50%",
-            top: "50%",
-            width: "100%",
-            height: "100%",
-            transformOrigin: "0 0",
-            transform: `scale(${camera.z}) translate(-50%, -50%) translate(${camera.x}px, ${camera.y}px)`,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          {stream ? <CameraStream /> : null}
-        </div>
-        <TargetVisualizer />
-        <div className="absolute left-0 top-0 w-full h-full flex flex-col gap-2 items-center justify-center"></div>
-      </div>
-      <div className="flex bg-neutral-700 justify-between text-xs px-3 font-mono py-1">
-        <div>
-          {mediaSize.width}x{mediaSize.height}
-        </div>
-        <div className="text-blue-400">
-          {targetWidth}x{targetHeight}
-        </div>
-        <div>
-          {Math.round(camera.x)} {Math.round(camera.y)} {camera.z.toFixed(2)}
+        <div className="flex flex-col gap-2 items-center justify-center h-full">
+          <div
+            ref={(div) => {
+              if (div) {
+                setCanvasContainer(div);
+              }
+            }}
+            style={{
+              position: "absolute",
+              left: "50%",
+              top: "50%",
+              width: "100%",
+              height: "100%",
+              transformOrigin: "0 0",
+              transform: `scale(${camera.z}) translate(-50%, -50%) translate(${camera.x}px, ${camera.y}px)`,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <canvas ref={canvasRef} />
+          </div>
+          <TargetVisualizer />
         </div>
       </div>
       <div className="flex h-16 gap-2 items-center py-2 bg-neutral-800 px-2 justify-center">
-        <Button>
-          <CameraIcon size={16} />
-          Capture
+        <Button onClick={handleSubmit}>
+          <UploadIcon size={16} />
+          Submit
         </Button>
         <ButtonLink to={`/creator/${digit}`} transparent={true}>
           Cancel
         </ButtonLink>
       </div>
     </>
-  );
-}
-
-export function CameraStream() {
-  const [stream] = useAtom(cameraStreamAtom);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [mediaSize, setMediaSize] = useAtom(mediaSizeAtom);
-  const [cameraVideoElement, setCameraVideoElement] = useAtom(
-    creatorCameraVideoElementAtom,
-  );
-
-  useEffect(() => {
-    if (videoRef.current && stream) {
-      videoRef.current.srcObject = stream;
-      videoRef.current.onloadedmetadata = () => {
-        if (videoRef.current) {
-          setMediaSize({
-            width: videoRef.current.videoWidth,
-            height: videoRef.current.videoHeight,
-          });
-        }
-      };
-    }
-  }, [stream]);
-
-  return stream ? (
-    <video
-      className="relative"
-      ref={(el) => {
-        videoRef.current = el;
-        if (el && !cameraVideoElement) {
-          setCameraVideoElement(el);
-        }
-      }}
-      autoPlay
-      playsInline
-      style={{
-        transform: "scaleX(-1)",
-        width: mediaSize.width,
-        height: mediaSize.height,
-      }}
-    />
-  ) : null;
-}
-
-function TargetVisualizer() {
-  const { digit } = useParams();
-  const { targetWidth, targetHeight } = getTargetDimensions(digit!);
-  const [growContainerSize] = useAtom(growContainerSizeAtom);
-
-  const padding = 24;
-  const scale = Math.min(
-    Math.min(
-      (growContainerSize.width - padding * 2) / targetWidth,
-      (growContainerSize.height - padding * 2) / targetHeight,
-    ),
-    1,
-  );
-
-  return (
-    <div
-      style={{
-        position: "absolute",
-        left: "50%",
-        top: "50%",
-        width: "100%",
-        height: "100%",
-        transformOrigin: "0 0",
-        transform: `scale(${scale}) translate(-50%, -50%)`,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <div className="absolute">
-        <div
-          className="border-blue-500 relative border-2 m-auto"
-          style={{
-            width: targetWidth,
-            height: targetHeight,
-          }}
-        ></div>
-      </div>
-    </div>
   );
 }

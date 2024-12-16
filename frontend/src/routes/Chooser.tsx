@@ -1,15 +1,9 @@
-import { useAtom, useSetAtom } from "jotai";
-import { selectedDigitAtom, showChooserAtom, showEditorAtom } from "../atoms";
 import { labels } from "../shared/consts";
 import { XIcon } from "lucide-react";
 import { Link } from "react-router";
 import { ButtonLink } from "../components/Button";
 
 export function Chooser() {
-  const setShowChooser = useSetAtom(showChooserAtom);
-  const [showEditor, setShowEditor] = useAtom(showEditorAtom);
-  const [selectedDigit, setSelectedDigit] = useAtom(selectedDigitAtom);
-
   const srcs = [
     "/0.jpg",
     "/1.jpg",

@@ -1,13 +1,12 @@
 import { useRef, useState, useEffect } from "react";
-import { customDigitsAtom, showChooserAtom } from "../atoms";
-import { useAtom, useSetAtom } from "jotai";
+import { customDigitsAtom } from "../atoms";
+import { useAtom } from "jotai";
 import { ImageIcon } from "lucide-react";
-import { Button, ButtonLink } from "../components/Button";
+import { ButtonLink } from "../components/Button";
 import { Link } from "react-router";
 
 export function Clock() {
   const intervalRef = useRef<number | null>(null);
-  const setShowChooser = useSetAtom(showChooserAtom);
   const [, setBump] = useState(0);
 
   useEffect(() => {
@@ -42,7 +41,7 @@ export function Clock() {
           <DigitImage digit={hours[1]} />
           <Link
             to={`/creator/:`}
-            className="h-full w-1/2 border-2 border-transparent hover:border-blue-500"
+            className="h-full w-1/2 hover:outline hover:z-50 hover:outline-blue-500"
             style={{
               backgroundImage: 'url("/colon.jpg")',
               backgroundSize: "100% 100%",
@@ -53,7 +52,7 @@ export function Clock() {
           <DigitImage digit={minutes[1]} />
           <Link
             to={`/creator/${amppm.toLowerCase()}`}
-            className="h-1/2 w-full border-2 border-transparent hover:border-blue-500"
+            className="h-1/2 w-full hover:outline hover:z-50 hover:outline-blue-500"
             style={{
               backgroundImage: `url("/${amppm.toLowerCase()}.jpg")`,
               backgroundSize: "100% 100%",
@@ -62,7 +61,7 @@ export function Clock() {
           ></Link>
         </div>
       </div>
-      <div className="flex justify-center pb-4">
+      <div className="justify-center hidden pb-4">
         <ButtonLink to="/chooser">
           <ImageIcon size={16} />
           Contribute
@@ -84,9 +83,9 @@ function DigitImage({ digit }: { digit: string }) {
   return (
     <Link
       to={`/creator/${digit}`}
-      className="h-full w-full border-2 border-transparent hover:border-blue-500"
+      className="h-full w-full hover:outline hover:z-50 relative hover:outline-blue-500"
       style={{
-        backgroundImage: `url("/${imageString}")`,
+        backgroundImage: `url("${imageString}")`,
         backgroundSize: "100% 100%",
         backgroundRepeat: "no-repeat",
       }}
